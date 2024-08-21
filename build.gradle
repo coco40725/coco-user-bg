@@ -1,0 +1,63 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version "2.0.0"
+    id "org.jetbrains.kotlin.plugin.allopen" version "2.0.0"
+    id 'io.quarkus'
+}
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencies {
+    implementation 'io.quarkus:quarkus-rest-client-jackson'
+    implementation 'io.quarkus:quarkus-security-jpa-reactive'
+    implementation enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}")
+    implementation 'io.quarkus:quarkus-rest'
+    implementation 'io.quarkus:quarkus-rest-jackson'
+    implementation 'io.quarkus:quarkus-mongodb-client'
+    implementation 'io.quarkus:quarkus-kotlin'
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib-jdk8'
+    implementation 'io.quarkus:quarkus-arc'
+    implementation "io.quarkus:quarkus-smallrye-health"
+    implementation 'com.google.api-client:google-api-client:2.6.0'
+    implementation 'com.auth0:java-jwt:4.4.0'
+    implementation "io.quarkus:quarkus-mailer"
+
+
+    // pod communication: grpc
+    implementation "io.quarkus:quarkus-grpc"
+
+
+    testImplementation 'io.quarkus:quarkus-junit5'
+    testImplementation 'io.rest-assured:rest-assured'
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+}
+
+group 'com.coco'
+version '1.0.0-SNAPSHOT'
+
+java {
+}
+
+test {
+    systemProperty "java.util.logging.manager", "org.jboss.logmanager.LogManager"
+}
+allOpen {
+    annotation("jakarta.ws.rs.Path")
+    annotation("jakarta.enterprise.context.ApplicationScoped")
+    annotation("jakarta.persistence.Entity")
+    annotation("io.quarkus.test.junit.QuarkusTest")
+}
+
+compileKotlin {
+    kotlinOptions.jvmTarget = JavaVersion.VERSION_21
+    kotlinOptions.javaParameters = true
+}
+
+compileTestKotlin {
+    kotlinOptions.jvmTarget = JavaVersion.VERSION_21
+}
+kotlin {
+    jvmToolchain(21)
+}
