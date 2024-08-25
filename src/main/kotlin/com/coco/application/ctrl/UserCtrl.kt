@@ -1,7 +1,6 @@
 package com.coco.application.ctrl
 
 import com.coco.application.cqrs.DefaultActionExecutor
-import com.coco.application.cqrs.command.base.CommandValidationException
 import com.coco.application.cqrs.command.createUserByWeb.CreateUserByWebCommand
 import com.coco.application.cqrs.command.login.LoginCommand
 import com.coco.application.cqrs.command.logout.LogoutCommand
@@ -27,29 +26,15 @@ class UserCtrl @Inject constructor(
     @POST
     @Path("/login")
     fun login(command: LoginCommand): Uni<Response?> {
-        return executor.validateCommand(command).chain { validateResult ->
-            val isValid = validateResult.isValid
-            val message = validateResult.message
-            if (isValid) {
-                executor.executeCommand(command)
-            } else {
-                throw CommandValidationException("${command::class.java.name} validator fail; cause by : ${message}")
-            }
-        }
+        return executor.validateCommand(command)
+            .chain { _ -> executor.executeCommand(command) }
     }
 
     @POST
     @Path("/create")
     fun createUserByWeb(command: CreateUserByWebCommand): Uni<Response?> {
-        return executor.validateCommand(command).chain { validateResult ->
-            val isValid = validateResult.isValid
-            val message = validateResult.message
-            if (isValid) {
-                executor.executeCommand(command)
-            } else {
-                throw CommandValidationException("${command::class.java.name} validator fail; cause by : ${message}")
-            }
-        }
+        return executor.validateCommand(command)
+            .chain { _  -> executor.executeCommand(command) }
     }
 
     @Logged

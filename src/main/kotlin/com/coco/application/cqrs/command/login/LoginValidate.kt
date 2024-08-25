@@ -2,6 +2,7 @@ package com.coco.application.cqrs.command.login
 
 import com.coco.application.cqrs.command.base.CommandValidateResult
 import com.coco.application.cqrs.command.base.CommandValidator
+import com.coco.application.exception.CommandValidationException
 import com.coco.domain.enums.ProviderType
 import io.smallrye.mutiny.Uni
 import jakarta.enterprise.context.ApplicationScoped
@@ -13,6 +14,8 @@ import jakarta.enterprise.context.ApplicationScoped
 
 @ApplicationScoped
 class LoginValidate: CommandValidator<LoginCommand> {
+
+    private val className = LoginValidate::class.java.simpleName
     override fun validateCommand(command: LoginCommand): Uni<CommandValidateResult> {
         var isValid = true
         val message = mutableListOf<String>()
@@ -21,23 +24,26 @@ class LoginValidate: CommandValidator<LoginCommand> {
         // rule 1: if LoginType is WEB, then email and password must not be null
         if (type == ProviderType.WEB) {
             if (command.email.isNullOrEmpty()) {
-                isValid = false
-                message.add("email must not be null")
+                return Uni.createFrom().failure(CommandValidationException(className, ValidateMessage.EMAIL_INVALID.name))
             }
             if (command.password.isNullOrEmpty()) {
-                isValid = false
-                message.add("password must not be null")
+               return Uni.createFrom().failure(CommandValidationException(className, ValidateMessage.PASSWORD_INVALID.name))
             }
         }
 
         // rule 2: if LoginType is GOOGLE, then idToken must not be null
         if (type == ProviderType.GOOGLE) {
             if (command.idToken.isNullOrEmpty()) {
-                isValid = false
-                message.add("idToken must not be null")
+                return Uni.createFrom().failure(CommandValidationException(className, ValidateMessage.GOOGLE_ID_TOKEN_INVALID.name))
             }
         }
 
-        return Uni.createFrom().item(CommandValidateResult(isValid, message))
+        return Uni.createFrom().item(CommandValidateResult())
     }
+}
+
+enum class ValidateMessage {
+    EMAIL_INVALID,
+    PASSWORD_INVALID,
+    GOOGLE_ID_TOKEN_INVALID
 }

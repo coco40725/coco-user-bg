@@ -25,6 +25,9 @@ dependencies {
     implementation "io.quarkus:quarkus-mailer"
 
 
+    implementation("io.quarkus:quarkus-micrometer-registry-prometheus")
+
+
     // pod communication: grpc
     implementation "io.quarkus:quarkus-grpc"
 

@@ -2,7 +2,7 @@ package com.coco.application.cqrs.command.login.impl
 
 import com.coco.application.cqrs.command.login.LoginCommand
 import com.coco.application.cqrs.command.login.LoginStrategy
-import com.coco.application.cqrs.command.login.UserNotFoundException
+import com.coco.application.exception.ApplicationException
 import com.coco.application.service.JwtManagementService
 import com.coco.application.service.UserManagementService
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -21,19 +21,24 @@ class WebLoginStrategy @Inject constructor(
     private val userManagementService: UserManagementService
 ): LoginStrategy {
 
+    private val className = this::class.java.simpleName
     private val mapper = ObjectMapper()
     override fun login(command: LoginCommand): Uni<String?> {
         val email = command.email
         val password = command.password
 
-        return userManagementService.findUser(email !!).map { u ->
+        return userManagementService.findUser(email !!).chain { u ->
             if (u == null || !userManagementService.verifyPassword(password !!, u.password !!)) {
-                throw UserNotFoundException("User not found or password is incorrect")
+                Uni.createFrom().failure(ApplicationException(
+                    className,
+                    this::login.name,
+                    "User not found or password is incorrect"
+                ))
             } else {
                 val json = mapper.writeValueAsString(
                     mapOf("id" to u.id, "email" to u.email, "name" to u.name)
                 )
-                jwtManagementService.generateJwtToken(json)
+                Uni.createFrom().item(jwtManagementService.generateJwtToken(json))
             }
         }
     }

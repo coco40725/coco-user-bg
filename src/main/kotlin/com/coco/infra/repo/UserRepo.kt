@@ -2,7 +2,7 @@ package com.coco.infra.repo
 
 import com.coco.domain.enums.ProviderType
 import com.coco.domain.model.User
-import com.coco.infra.repo.exception.UserInsertException
+import com.coco.infra.exception.RepoException
 import com.mongodb.ReadPreference
 import com.mongodb.client.model.Filters
 import com.mongodb.client.model.IndexOptions
@@ -36,6 +36,8 @@ class UserRepo @Inject constructor(
     private val emailIndex = IndexOptions().name("email")
         .unique(true)
         .background(true)
+
+    private val className = UserRepo::class.java.simpleName
 
     @PostConstruct
     fun init(){
@@ -73,11 +75,15 @@ class UserRepo @Inject constructor(
 
     fun insertOne(user: User): Uni<User> {
         val document = toDocument(user)
-        return writeCol.insertOne(document).map { it ->
+        return writeCol.insertOne(document).chain { it ->
             if (it.wasAcknowledged()) {
-                user
+                Uni.createFrom().item(user)
             } else {
-                throw UserInsertException("Insert user failed")
+                Uni.createFrom().failure(RepoException(
+                    className,
+                    this::insertOne.name,
+                    "Insert user failed"
+                ))
             }
         }
     }
